@@ -231,7 +231,6 @@ export default function GetStartedPage() {
             </Row>
           </Container>
         </section>
-        <Footer />
       </div>
     </>
   )

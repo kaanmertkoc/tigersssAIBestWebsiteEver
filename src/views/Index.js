@@ -61,7 +61,6 @@ export default function Index() {
           <Examples />
           <Download />
         </div> */}
-        <Footer />
       </div>
     </>
   )
