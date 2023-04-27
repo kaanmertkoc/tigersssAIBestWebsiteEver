@@ -4171,7 +4171,7 @@ input[type="button"].btn-block {
 .custom-switch
   .custom-control-input:disabled:checked
   ~ .custom-control-label::before {
-  background-color: rgba(225, 78, 202, 0.5);
+  background-color: #fff;
 }
 
 .custom-select {

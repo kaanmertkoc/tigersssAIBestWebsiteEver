@@ -31,6 +31,7 @@ export default function GetStartedPage() {
   const [title, setTitle] = React.useState('')
   const [image, setImage] = React.useState('')
   const [transformedImg, setTransformedImg] = React.useState()
+  const [isChecked, setIsChecked] = React.useState(false)
 
   const { uploadImage, transformImage, translate } = api()
 
@@ -77,15 +78,22 @@ export default function GetStartedPage() {
       setImage(imgUrl)
     }
   }
-
+  console.log(isChecked)
   const handleTransform = () => {
-    translate(prompt).then((res) => {
-      transformImage(image, res.translation.translatedText, title).then(
-        (res) => {
-          setTransformedImg(res.image)
-        }
-      )
-    })
+    console.log('checked', isChecked)
+    if (isChecked) {
+      translate(prompt).then((res) => {
+        transformImage(image, res.translation.translatedText, title).then(
+          (res) => {
+            setTransformedImg(res.image)
+          }
+        )
+      })
+    } else {
+      transformImage(image, prompt, title).then((res) => {
+        setTransformedImg(res.image)
+      })
+    }
   }
 
   return (
@@ -176,7 +184,21 @@ export default function GetStartedPage() {
                 <h5 className='text-on-back'>02</h5>
                 <div className='btn-wrapper pt-3'>
                   <FormGroup>
-                    <Label>Enter your text instruction.</Label>
+                    <div className='btn-wrapper'>
+                      <Label className='mr-3'>
+                        Enter your text instruction.
+                      </Label>
+                    </div>
+                    <div className='btn-wrapper pb-3 pt-3'>
+                      <CustomInput
+                        type='switch'
+                        id='switch-1'
+                        label='Turkish Prompt'
+                        checked={isChecked}
+                        onChange={() => setIsChecked((prev) => !prev)}
+                      />
+                    </div>
+
                     <Input
                       placeholder='Make image colors darker'
                       type='text'
