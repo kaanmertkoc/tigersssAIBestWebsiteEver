@@ -35,20 +35,12 @@ import Signup from 'views/IndexSections/Signup.js'
 import Examples from 'views/IndexSections/Examples.js'
 import Download from 'views/IndexSections/Download.js'
 
-export default function Index() {
-  React.useEffect(() => {
-    document.body.classList.toggle('index-page')
-    // Specify how to clean up after this effect:
-    return function cleanup() {
-      document.body.classList.toggle('index-page')
-    }
-  }, [])
+export default function GetStartedPage() {
   return (
     <>
       <IndexNavbar />
       <div className='wrapper'>
-        <PageHeader />
-        {/* <div className="main">
+        <div className='main'>
           <Basics />
           <Navbars />
           <Tabs />
@@ -60,7 +52,7 @@ export default function Index() {
           <Signup />
           <Examples />
           <Download />
-        </div> */}
+        </div>
         <Footer />
       </div>
     </>

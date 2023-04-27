@@ -15,38 +15,38 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter, Route, Switch } from 'react-router-dom'
 
-import "assets/css/nucleo-icons.css";
-import "assets/scss/blk-design-system-react.scss";
-import "assets/demo/demo.css";
+import 'assets/css/nucleo-icons.css'
+import 'assets/scss/blk-design-system-react.scss'
+import 'assets/demo/demo.css'
 
-import Index from "views/Index.js";
-import LandingPage from "views/examples/LandingPage.js";
-import RegisterPage from "views/examples/RegisterPage.js";
-import ProfilePage from "views/examples/ProfilePage.js";
+import Index from 'views/Index.js'
+import LandingPage from 'views/PageDetails/LandingPage.js'
+import RegisterPage from 'views/PageDetails/RegisterPage.js'
+import ProfilePage from 'views/PageDetails/ProfilePage.js'
+import GetStartedPage from 'views/PageDetails/GetStartedPage'
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const root = ReactDOM.createRoot(document.getElementById('root'))
 
 root.render(
   <BrowserRouter>
     <Switch>
-      <Route path="/components" render={(props) => <Index {...props} />} />
       <Route
-        path="/landing-page"
+        path='/landing-page'
         render={(props) => <LandingPage {...props} />}
       />
       <Route
-        path="/register-page"
-        render={(props) => <RegisterPage {...props} />}
-      />
-      <Route
-        path="/profile-page"
+        path='/profile-page'
         render={(props) => <ProfilePage {...props} />}
       />
-      <Redirect from="/" to="/components" />
+      <Route
+        path='/get-started'
+        render={(props) => <GetStartedPage {...props} />}
+      />
+      <Route path='/' render={(props) => <Index {...props} />} />
     </Switch>
   </BrowserRouter>
-);
+)
