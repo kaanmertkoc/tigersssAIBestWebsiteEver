@@ -14,6 +14,31 @@ const api = () => {
         return data;
       });
   };
+
+  const getData = (imgURL, prompt, title, neg_prompt, num_inference_steps) => {
+    return new Promise((resolve, reject) => {
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: imgURL,
+          prompt: prompt,
+          title: title,
+          neg_prompt: neg_prompt,
+          num_inference_steps: num_inference_steps,
+        }),
+      };
+      return fetch(`${baseURL}/image-process`, requestOptions)
+        .then((response) => {
+          resolve(response.json());
+        })
+        .then((data) => {
+          console.log("data", data);
+          resolve(data);
+        });
+    });
+  };
+
   const transformImage = (
     imgURL,
     prompt,
@@ -42,19 +67,23 @@ const api = () => {
       });
   };
   const translate = (text) => {
-    return fetch(`${baseURL}/translation?input_text=${text}`)
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        console.log("data", data);
-        return data;
-      });
+    return new Promise((resolve, reject) => {
+      return fetch(`${baseURL}/translation?input_text=${text}`)
+        .then((response) => {
+          resolve(response.json());
+        })
+        .then((data) => {
+          console.log("data", data);
+          resolve(data);
+        });
+    });
   };
+
   return {
     uploadImage,
     transformImage,
     translate,
+    getData,
   };
 };
 

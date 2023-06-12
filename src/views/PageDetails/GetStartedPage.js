@@ -15,13 +15,13 @@ import {
   Col,
   CustomInput,
 } from "reactstrap";
-
 import Nouislider from "nouislider-react";
-
 // core components
 import Footer from "components/Footer/Footer.js";
 import IndexNavbar from "components/Navbars/IndexNavbar";
+import { UncontrolledCarousel } from "reactstrap";
 import api from "api";
+import { Slide } from "react-slideshow-image";
 
 let ps = null;
 
@@ -32,12 +32,12 @@ export default function GetStartedPage() {
   const [prompt, setPrompt] = React.useState("");
   const [neg_prompt, setNeg_Prompt] = React.useState("");
   const [title, setTitle] = React.useState("");
-  const [image, setImage] = React.useState("");
-  const [transformedImg, setTransformedImg] = React.useState();
+  const [image, setImage] = React.useState([]);
+  const [transformedImg, setTransformedImg] = React.useState([]);
   const [isChecked, setIsChecked] = React.useState(false);
   const [sliderVal, setSliderVal] = React.useState(40);
-
-  const { uploadImage, transformImage, translate } = api();
+  const [selectedFiles, setSelectedFiles] = React.useState([]);
+  const { uploadImage, transformImage, translate, getData } = api();
 
   React.useEffect(() => {
     if (navigator.platform.indexOf("Win") > -1) {
@@ -70,55 +70,105 @@ export default function GetStartedPage() {
 
   const onChange = (e) => {
     setType("img");
+    const filesArray = []; // Initialize an array to store the file data
     for (const file of e.target.files) {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
-        setImgsSrc(reader.result);
+        filesArray.push(reader.result); // Add the file data to the array
+        setImgsSrc(filesArray); // Update the state with the array of file data
       };
       reader.onerror = () => {
         console.log(reader.error);
       };
     }
+    setSelectedFiles(filesArray);
   };
 
   const handleSetImage = () => {
     if (type === "img") {
-      uploadImage(imgsSrc).then((res) => {
-        setImage(res.image.src);
-      });
-    } else if (type === "url") {
-      setImage(imgUrl);
-    }
-  };
-  console.log("SliderVal", sliderVal);
-  console.log(isChecked);
-  const handleTransform = () => {
-    console.log("checked", isChecked);
-    if (isChecked) {
-      translate(prompt).then((res) => {
-        translate(neg_prompt).then((neg_res) => {
-          transformImage(
-            image,
-            res.translation.translatedText,
-            title,
-            neg_res.translation.translatedText,
-            Math.round(sliderVal)
-          ).then((res) => {
-            setTransformedImg(res.image);
+      let arr = [];
+      selectedFiles.forEach((element, index) => {
+        uploadImage(element).then((res) => {
+          setImage([
+            {
+              src: res.image.src,
+              altText: `altText${index}`,
+              caption: `caption_${index}`,
+            },
+            ...arr,
+          ]);
+          arr.push({
+            src: res.image.src,
+            altText: `altText${index}`,
+            caption: `caption_${index}`,
           });
         });
       });
+      //setImage(arr);
+    } else if (type === "url") {
+      setImage([imgUrl]);
+    }
+  };
+
+  const handleTransform = async () => {
+    let finalTransformedArr = [];
+    let processIndex = 0;
+    console.log("checked", isChecked);
+    if (isChecked) {
+      let res = await translate(prompt);
+      let neg_res = await translate(neg_prompt);
+      for (const prop of image) {
+        await getData(
+          prop.src,
+          res.translation.translatedText,
+          title,
+          neg_res.translation.translatedText,
+          Math.round(sliderVal)
+        ).then((res) => {
+          console.log("Done");
+          setTransformedImg([
+            {
+              src: res.image.src,
+              altText: `output_${processIndex}`,
+              caption: `O_caption_${processIndex}`,
+            },
+            ...finalTransformedArr,
+          ]);
+          finalTransformedArr.push({
+            src: res.image.src,
+            altText: `output_${processIndex}`,
+            caption: `O_caption_${processIndex}`,
+          });
+          processIndex += 1;
+        });
+      }
     } else {
-      transformImage(
-        image,
-        prompt,
-        title,
-        neg_prompt,
-        Math.round(sliderVal)
-      ).then((res) => {
-        setTransformedImg(res.image);
-      });
+      for (const prop of image) {
+        await getData(
+          prop.src,
+          prompt,
+          title,
+          neg_prompt,
+          Math.round(sliderVal)
+        ).then((res) => {
+          console.log("Done");
+          setTransformedImg([
+            {
+              src: res.image.src,
+              altText: `output_${processIndex}`,
+              caption: `O_caption_${processIndex}`,
+            },
+            ...finalTransformedArr,
+          ]);
+          finalTransformedArr.push({
+            src: res.image.src,
+            altText: `output_${processIndex}`,
+            caption: `O_caption_${processIndex}`,
+          });
+          processIndex += 1;
+        });
+      }
     }
   };
 
@@ -147,10 +197,11 @@ export default function GetStartedPage() {
                 </p>
                 <FormGroup>
                   <CustomInput
+                    multiple
+                    label="Pick a file"
                     type="file"
                     id="exampleCustomFileBrowser"
                     name="customFile"
-                    label="Yo, pick a file!"
                     onChange={onChange}
                   />
                 </FormGroup>
@@ -178,15 +229,22 @@ export default function GetStartedPage() {
                 </FormGroup>
               </Col>
               <Col className="ml-auto mr-auto" lg="4" md="6">
-                <img
-                  className="w-full my-6 rounded-xl"
-                  src={
-                    image
-                      ? image
-                      : "https://www.memecreator.org/static/images/memes/5331753.jpg"
-                  }
-                  alt="input"
-                />
+                {image.length === selectedFiles.length && image.length > 0 ? (
+                  <UncontrolledCarousel
+                    key={`carousel_${image.length}`}
+                    items={image}
+                    autoPlay={false}
+                    slide={false}
+                  />
+                ) : (
+                  <img
+                    className="w-full my-6 rounded-xl"
+                    src={
+                      "https://www.memecreator.org/static/images/memes/5331753.jpg"
+                    }
+                    alt="input"
+                  />
+                )}
               </Col>
             </Row>
           </Container>
@@ -196,13 +254,22 @@ export default function GetStartedPage() {
             <Row className="justify-content-between">
               <Col md="6" lg="4">
                 <Row className="justify-content-between align-items-center">
-                  {image ? (
+                  {image.length === selectedFiles.length && image.length > 0 ? (
+                    <UncontrolledCarousel
+                      key={`carousel_${image.length}`}
+                      items={image}
+                      autoPlay={false}
+                      slide={false}
+                    />
+                  ) : (
                     <img
                       className="w-full my-6 rounded-xl"
-                      src={image}
+                      src={
+                        "https://www.memecreator.org/static/images/memes/5331753.jpg"
+                      }
                       alt="input"
                     />
-                  ) : null}
+                  )}
                 </Row>
               </Col>
               <Col md="5">
@@ -225,13 +292,21 @@ export default function GetStartedPage() {
                       />
                     </div>
                     <Input
-                      placeholder="Make image colors darker"
+                      placeholder={
+                        isChecked
+                          ? "Fotoğraftaki çocuğa şapka ekle"
+                          : "Make image colors darker"
+                      }
                       type="text"
                       onChange={(e) => setPrompt(e.target.value)}
                     />
                     <div className="btn-wrapper pb-3 pt-3">
                       <Input
-                        placeholder="Negative Prompt (Optional)"
+                        placeholder={
+                          isChecked
+                            ? "Negatif bilgi ekle (İsteğe Bağlı)"
+                            : "Negative Prompt (Optional)"
+                        }
                         type="text"
                         onChange={(e) => setNeg_Prompt(e.target.value)}
                       />
@@ -282,13 +357,16 @@ export default function GetStartedPage() {
                     <h5 className="text-on-back">03</h5>
                   </CardHeader>
                   <CardBody>
-                    {transformedImg ? (
-                      <img
-                        className="w-full my-6 rounded-xl"
-                        src={transformedImg.src}
-                        alt={transformedImg.alt}
-                      />
-                    ) : null}
+                    <div className="w-full my-6 rounded-xl">
+                      {transformedImg.length > 0 &&
+                      transformedImg.length === selectedFiles.length ? (
+                        <UncontrolledCarousel
+                          key={`carousel_${transformedImg.length}`}
+                          items={transformedImg}
+                          autoPlay={false}
+                        />
+                      ) : null}
+                    </div>
                   </CardBody>
                 </Card>
               </Col>
