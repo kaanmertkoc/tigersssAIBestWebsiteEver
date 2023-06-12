@@ -196,7 +196,7 @@ export default function GetStartedPage() {
                   Get Started by uploading your image.
                 </p>
                 <FormGroup>
-                  <CustomInput
+                  <CustomInput // multiline for labels needs to be added for long named multi picture file choose situtations
                     multiple
                     label="Pick a file"
                     type="file"
