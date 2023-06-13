@@ -69,8 +69,8 @@ export default function GetStartedPage() {
   );
 
   const onChange = (e) => {
-    setType("img");
-    const filesArray = []; // Initialize an array to store the file data
+    setType('img');
+    /*
     for (const file of e.target.files) {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -82,32 +82,25 @@ export default function GetStartedPage() {
         console.log(reader.error);
       };
     }
-    setSelectedFiles(filesArray);
+    */
+    e.preventDefault();
+    console.log(
+      '🚀 ~ file: GetStartedPage.js:47 ~ onChange ~ e.target',
+      e.target.files[0]
+    );
+    const file = e.target.files[0];
+    setImgsSrc(file);
   };
 
-  const handleSetImage = () => {
-    if (type === "img") {
-      let arr = [];
-      selectedFiles.forEach((element, index) => {
-        uploadImage(element).then((res) => {
-          setImage([
-            {
-              src: res.image.src,
-              altText: `altText${index}`,
-              caption: `caption_${index}`,
-            },
-            ...arr,
-          ]);
-          arr.push({
-            src: res.image.src,
-            altText: `altText${index}`,
-            caption: `caption_${index}`,
-          });
-        });
-      });
-      //setImage(arr);
-    } else if (type === "url") {
-      setImage([imgUrl]);
+  const handleSetImage = async () => {
+    if (type === 'img') {
+      const res = await uploadImage(imgsSrc, setImage);
+      console.log(
+        '🚀 ~ file: GetStartedPage.js:83 ~ handleSetImage ~ res:',
+        res
+      );
+    } else if (type === 'url') {
+      setImage(imgUrl);
     }
   };
 

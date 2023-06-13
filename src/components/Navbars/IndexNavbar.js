@@ -38,30 +38,35 @@ import {
 
 export default function IndexNavbar() {
   const [color, setColor] = React.useState('navbar-transparent')
+  const [user, setUser] = React.useState(null);
   React.useEffect(() => {
-    window.addEventListener('scroll', changeColor)
-    return function cleanup() {
-      window.removeEventListener('scroll', changeColor)
+    window.addEventListener('scroll', changeColor);
+    const userLocal = window.localStorage.getItem('user');
+    if (userLocal) {
+      setUser(JSON.parse(userLocal));
     }
-  }, [])
+    return function cleanup() {
+      window.removeEventListener('scroll', changeColor);
+    };
+  }, []);
   const changeColor = () => {
     if (
       document.documentElement.scrollTop > 99 ||
       document.body.scrollTop > 99
     ) {
-      setColor('bg-info')
+      setColor('bg-info');
     } else if (
       document.documentElement.scrollTop < 100 ||
       document.body.scrollTop < 100
     ) {
-      setColor('navbar-transparent')
+      setColor('navbar-transparent');
     }
-  }
+  };
   const scrollToDownload = () => {
     document
       .getElementById('download-section')
-      .scrollIntoView({ behavior: 'smooth' })
-  }
+      .scrollIntoView({ behavior: 'smooth' });
+  };
   return (
     <Navbar className={'fixed-top ' + color} color-on-scroll='100' expand='lg'>
       <Container>
@@ -81,8 +86,34 @@ export default function IndexNavbar() {
               <i className='tim-icons icon-spaceship' /> Get Started
             </Button>
           </NavItem>
+          {user ? (
+            <NavItem>
+              <Button
+                className='nav-link d-none d-lg-block'
+                color='secondary'
+                href='/profile-page'
+              >
+                <img
+                  alt='user profile'
+                  width='24px'
+                  height='24px'
+                  src={user?.photoURL}
+                />
+              </Button>
+            </NavItem>
+          ) : (
+            <NavItem>
+              <Button
+                className='nav-link d-none d-lg-block'
+                color='secondary'
+                href='/register'
+              >
+                Sign In
+              </Button>
+            </NavItem>
+          )}
         </Nav>
       </Container>
     </Navbar>
-  )
+  );
 }
