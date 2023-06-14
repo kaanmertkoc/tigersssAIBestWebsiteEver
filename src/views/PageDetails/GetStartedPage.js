@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from 'react'
 // javascript plugin used to create scrollbars on windows
-import PerfectScrollbar from "perfect-scrollbar";
+import PerfectScrollbar from 'perfect-scrollbar'
 // reactstrap components
 import {
   Button,
@@ -14,51 +14,50 @@ import {
   Row,
   Col,
   CustomInput,
-} from "reactstrap";
-import Nouislider from "nouislider-react";
+} from 'reactstrap'
+import Nouislider from 'nouislider-react'
 // core components
-import Footer from "components/Footer/Footer.js";
-import IndexNavbar from "components/Navbars/IndexNavbar";
-import { UncontrolledCarousel } from "reactstrap";
-import api from "api";
-import { Slide } from "react-slideshow-image";
+import IndexNavbar from 'components/Navbars/IndexNavbar'
+import { UncontrolledCarousel } from 'reactstrap'
+import api from 'api'
+import { storage } from '../../firebase'
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 
-let ps = null;
+let ps = null
 
 export default function GetStartedPage() {
-  const [imgsSrc, setImgsSrc] = React.useState("");
-  const [imgUrl, setImgUrl] = React.useState("");
-  const [type, setType] = React.useState("");
-  const [prompt, setPrompt] = React.useState("");
-  const [neg_prompt, setNeg_Prompt] = React.useState("");
-  const [title, setTitle] = React.useState("");
-  const [image, setImage] = React.useState([]);
-  const [transformedImg, setTransformedImg] = React.useState([]);
-  const [isChecked, setIsChecked] = React.useState(false);
-  const [sliderVal, setSliderVal] = React.useState(40);
-  const [selectedFiles, setSelectedFiles] = React.useState([]);
-  const { uploadImage, transformImage, translate, getData } = api();
+  const [imgUrl, setImgUrl] = React.useState('')
+  const [type, setType] = React.useState('')
+  const [prompt, setPrompt] = React.useState('')
+  const [neg_prompt, setNeg_Prompt] = React.useState('')
+  const [title, setTitle] = React.useState('')
+  const [image, setImage] = React.useState([])
+  const [transformedImg, setTransformedImg] = React.useState([])
+  const [isChecked, setIsChecked] = React.useState(false)
+  const [sliderVal, setSliderVal] = React.useState(40)
+  const [selectedFiles, setSelectedFiles] = React.useState([])
+  const { translate, getData } = api()
 
   React.useEffect(() => {
-    if (navigator.platform.indexOf("Win") > -1) {
-      document.documentElement.className += " perfect-scrollbar-on";
-      document.documentElement.classList.remove("perfect-scrollbar-off");
-      let tables = document.querySelectorAll(".table-responsive");
+    if (navigator.platform.indexOf('Win') > -1) {
+      document.documentElement.className += ' perfect-scrollbar-on'
+      document.documentElement.classList.remove('perfect-scrollbar-off')
+      let tables = document.querySelectorAll('.table-responsive')
       for (let i = 0; i < tables.length; i++) {
-        ps = new PerfectScrollbar(tables[i]);
+        ps = new PerfectScrollbar(tables[i])
       }
     }
-    document.body.classList.toggle("profile-page");
+    document.body.classList.toggle('profile-page')
     // Specify how to clean up after this effect:
     return function cleanup() {
-      if (navigator.platform.indexOf("Win") > -1) {
-        ps.destroy();
-        document.documentElement.className += " perfect-scrollbar-off";
-        document.documentElement.classList.remove("perfect-scrollbar-on");
+      if (navigator.platform.indexOf('Win') > -1) {
+        ps.destroy()
+        document.documentElement.className += ' perfect-scrollbar-off'
+        document.documentElement.classList.remove('perfect-scrollbar-on')
       }
-      document.body.classList.toggle("profile-page");
-    };
-  }, []);
+      document.body.classList.toggle('profile-page')
+    }
+  }, [])
 
   const Slider = () => (
     <Nouislider
@@ -66,227 +65,260 @@ export default function GetStartedPage() {
       start={[sliderVal]}
       onChange={(e) => setSliderVal(e)}
     />
-  );
+  )
 
-  const onChange = (e) => {
-    setType("img");
-    const filesArray = []; // Initialize an array to store the file data
-    for (const file of e.target.files) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        filesArray.push(reader.result); // Add the file data to the array
-        setImgsSrc(filesArray); // Update the state with the array of file data
-      };
-      reader.onerror = () => {
-        console.log(reader.error);
-      };
-    }
-    setSelectedFiles(filesArray);
-  };
-
-  const handleSetImage = () => {
-    if (type === "img") {
-      let arr = [];
-      selectedFiles.forEach((element, index) => {
-        uploadImage(element).then((res) => {
+  const uploadImage = async (imgAddress, arr) => {
+    const storageRef = ref(storage, `files/${imgAddress?.name}`)
+    const uploadTask = uploadBytesResumable(storageRef, imgAddress)
+    const a = uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        )
+        console.log(progress)
+      },
+      (error) => {
+        alert(error)
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          console.log('download', downloadURL)
           setImage([
             {
-              src: res.image.src,
-              altText: `altText${index}`,
-              caption: `caption_${index}`,
+              src: downloadURL,
+              altText: 'alt',
+              caption: 'caption',
             },
             ...arr,
-          ]);
+          ])
           arr.push({
-            src: res.image.src,
-            altText: `altText${index}`,
-            caption: `caption_${index}`,
-          });
-        });
-      });
-      //setImage(arr);
-    } else if (type === "url") {
-      setImage([imgUrl]);
+            src: downloadURL,
+            altText: 'alt',
+            caption: 'caption',
+          })
+        })
+      }
+    )
+  }
+
+  const onChange = (e) => {
+    setType('img')
+    const filesArray = [] // Initialize an array to store the file data
+    for (const file of e.target.files) {
+      filesArray.push(file) // Add the file data to the array
     }
-  };
+    setSelectedFiles(filesArray)
+  }
+
+  const handleSetImage = async () => {
+    if (type === 'img') {
+      let arr = []
+      selectedFiles.forEach(async (element, index) => {
+        await uploadImage(element, arr).then((res) => {})
+      })
+      //setImage(arr);
+    } else if (type === 'url') {
+      setImage([imgUrl])
+    }
+  }
 
   const handleTransform = async () => {
-    let finalTransformedArr = [];
-    let processIndex = 0;
-    console.log("checked", isChecked);
+    let finalTransformedArr = []
+    let processIndex = 0
+    console.log('checked', isChecked)
     if (isChecked) {
-      let res = await translate(prompt);
-      let neg_res = await translate(neg_prompt);
+      let res = await translate(prompt)
+      let neg_res = await translate(neg_prompt)
       for (const prop of image) {
+        console.log('image', prop)
         await getData(
-          prop.src,
+          prop.src ? prop.src : prop,
           res.translation.translatedText,
           title,
           neg_res.translation.translatedText,
           Math.round(sliderVal)
         ).then((res) => {
-          console.log("Done");
+          console.log('Done')
+          //we can do firebase database push here 1
           setTransformedImg([
             {
-              src: res.image.src,
+              src: res,
               altText: `output_${processIndex}`,
               caption: `O_caption_${processIndex}`,
             },
             ...finalTransformedArr,
-          ]);
+          ])
           finalTransformedArr.push({
-            src: res.image.src,
+            src: res,
             altText: `output_${processIndex}`,
             caption: `O_caption_${processIndex}`,
-          });
-          processIndex += 1;
-        });
+          })
+          processIndex += 1
+        })
       }
     } else {
       for (const prop of image) {
         await getData(
-          prop.src,
+          prop.src ? prop.src : prop,
           prompt,
           title,
           neg_prompt,
           Math.round(sliderVal)
         ).then((res) => {
-          console.log("Done");
+          console.log('res', res)
+          //we can do firebase database push here 2
           setTransformedImg([
             {
-              src: res.image.src,
+              src: res,
               altText: `output_${processIndex}`,
               caption: `O_caption_${processIndex}`,
             },
             ...finalTransformedArr,
-          ]);
+          ])
           finalTransformedArr.push({
-            src: res.image.src,
+            src: res,
             altText: `output_${processIndex}`,
             caption: `O_caption_${processIndex}`,
-          });
-          processIndex += 1;
-        });
+          })
+          processIndex += 1
+        })
       }
     }
-  };
+  }
+
+  useEffect(() => {
+    console.log('transform', transformedImg)
+    //we can also do image upload to database in here
+  }, [transformedImg])
 
   return (
     <>
       <IndexNavbar />
-      <div className="wrapper">
-        <div className="page-header">
+      <div className='wrapper'>
+        <div className='page-header'>
           <img
-            alt="..."
-            className="dots"
-            src={require("assets/img/dots.png")}
+            alt='...'
+            className='dots'
+            src={require('assets/img/dots.png')}
           />
           <img
-            alt="..."
-            className="path"
-            src={require("assets/img/path4.png")}
+            alt='...'
+            className='path'
+            src={require('assets/img/path4.png')}
           />
-          <Container className="align-items-center">
+          <Container className='align-items-center'>
             <Row>
-              <Col lg="6" md="6">
-                <h1 className="profile-title text-left">Image Upload</h1>
-                <h5 className="text-on-back">01</h5>
-                <p className="profile-description">
+              <Col lg='6' md='6'>
+                <h1 className='profile-title text-left'>Image Upload</h1>
+                <h5 className='text-on-back'>01</h5>
+                <p className='profile-description'>
                   Get Started by uploading your image.
                 </p>
                 <FormGroup>
                   <CustomInput // multiline for labels needs to be added for long named multi picture file choose situtations
                     multiple
-                    label="Pick a file"
-                    type="file"
-                    id="exampleCustomFileBrowser"
-                    name="customFile"
+                    label='Pick a file'
+                    type='file'
+                    id='exampleCustomFileBrowser'
+                    name='customFile'
                     onChange={onChange}
                   />
                 </FormGroup>
                 <p>or enter an image url.</p>
                 <FormGroup>
                   <Input
-                    type="url"
-                    name="url"
-                    placeholder="https://..."
+                    type='url'
+                    name='url'
+                    placeholder='https://...'
                     onChange={(e) => {
-                      setImgUrl(e.target.value);
-                      setType("url");
+                      setImgUrl(e.target.value)
+                      setType('url')
                     }}
                   />
                   <Button
-                    className="btn-simple mt-3"
-                    color="info"
+                    className='btn-simple mt-3'
+                    color='info'
                     onClick={(e) => {
-                      e.preventDefault();
-                      handleSetImage();
+                      e.preventDefault()
+                      handleSetImage()
                     }}
                   >
                     Set Image
                   </Button>
                 </FormGroup>
               </Col>
-              <Col className="ml-auto mr-auto" lg="4" md="6">
-                {image.length === selectedFiles.length && image.length > 0 ? (
+              <Col className='ml-auto mr-auto' lg='4' md='6'>
+                {image.length === selectedFiles.length && image.length > 1 ? (
                   <UncontrolledCarousel
                     key={`carousel_${image.length}`}
                     items={image}
                     autoPlay={false}
                     slide={false}
                   />
+                ) : image.length === 1 ? (
+                  <img
+                    className='w-full my-6 rounded-xl'
+                    src={image[0]?.src ? image[0]?.src : image[0]}
+                    alt='input'
+                  />
                 ) : (
                   <img
-                    className="w-full my-6 rounded-xl"
+                    className='w-full my-6 rounded-xl'
                     src={
-                      "https://www.memecreator.org/static/images/memes/5331753.jpg"
+                      'https://www.memecreator.org/static/images/memes/5331753.jpg'
                     }
-                    alt="input"
+                    alt='input'
                   />
                 )}
               </Col>
             </Row>
           </Container>
         </div>
-        <div className="section">
+        <div className='section'>
           <Container>
-            <Row className="justify-content-between">
-              <Col md="6" lg="4">
-                <Row className="justify-content-between align-items-center">
-                  {image.length === selectedFiles.length && image.length > 0 ? (
+            <Row className='justify-content-between'>
+              <Col md='6' lg='4'>
+                <Row className='justify-content-between align-items-center'>
+                  {image.length === selectedFiles.length && image.length > 1 ? (
                     <UncontrolledCarousel
                       key={`carousel_${image.length}`}
                       items={image}
                       autoPlay={false}
                       slide={false}
                     />
+                  ) : image.length === 1 ? (
+                    <img
+                      className='w-full my-6 rounded-xl'
+                      src={image[0]?.src ? image[0]?.src : image[0]}
+                      alt='input'
+                    />
                   ) : (
                     <img
-                      className="w-full my-6 rounded-xl"
+                      className='w-full my-6 rounded-xl'
                       src={
-                        "https://www.memecreator.org/static/images/memes/5331753.jpg"
+                        'https://www.memecreator.org/static/images/memes/5331753.jpg'
                       }
-                      alt="input"
+                      alt='input'
                     />
                   )}
                 </Row>
               </Col>
-              <Col md="5">
-                <h1 className="profile-title text-left">Transform Image</h1>
-                <h5 className="text-on-back">02</h5>
-                <div className="btn-wrapper pt-3">
+              <Col md='5'>
+                <h1 className='profile-title text-left'>Transform Image</h1>
+                <h5 className='text-on-back'>02</h5>
+                <div className='btn-wrapper pt-3'>
                   <FormGroup>
-                    <div className="btn-wrapper">
-                      <Label className="mr-3">
+                    <div className='btn-wrapper'>
+                      <Label className='mr-3'>
                         Enter your text instruction.
                       </Label>
                     </div>
-                    <div className="btn-wrapper pb-3 pt-3">
+                    <div className='btn-wrapper pb-3 pt-3'>
                       <CustomInput
-                        type="switch"
-                        id="switch-1"
-                        label="Turkish Prompt"
+                        type='switch'
+                        id='switch-1'
+                        label='Turkish Prompt'
                         checked={isChecked}
                         onChange={() => setIsChecked((prev) => !prev)}
                       />
@@ -294,51 +326,51 @@ export default function GetStartedPage() {
                     <Input
                       placeholder={
                         isChecked
-                          ? "Fotoğraftaki çocuğa şapka ekle"
-                          : "Make image colors darker"
+                          ? 'Fotoğraftaki çocuğa şapka ekle'
+                          : 'Make image colors darker'
                       }
-                      type="text"
+                      type='text'
                       onChange={(e) => setPrompt(e.target.value)}
                     />
-                    <div className="btn-wrapper pb-3 pt-3">
+                    <div className='btn-wrapper pb-3 pt-3'>
                       <Input
                         placeholder={
                           isChecked
-                            ? "Negatif bilgi ekle (İsteğe Bağlı)"
-                            : "Negative Prompt (Optional)"
+                            ? 'Negatif bilgi ekle (İsteğe Bağlı)'
+                            : 'Negative Prompt (Optional)'
                         }
-                        type="text"
+                        type='text'
                         onChange={(e) => setNeg_Prompt(e.target.value)}
                       />
                     </div>
-                    <div className="btn-wrapper">
-                      <Label className="mr-3">
+                    <div className='btn-wrapper'>
+                      <Label className='mr-3'>
                         Choose your precision for the generated image
                       </Label>
                     </div>
-                    <div className="btn-wrapper pt-3">
-                      <div className="slider">
+                    <div className='btn-wrapper pt-3'>
+                      <div className='slider'>
                         <Slider />
                       </div>
                     </div>
                   </FormGroup>
                 </div>
-                <div className="btn-wrapper pt-3">
+                <div className='btn-wrapper pt-3'>
                   <FormGroup>
                     <Label>Enter a title for your new image.</Label>
                     <Input
-                      placeholder="My new generated image"
-                      type="text"
+                      placeholder='My new generated image'
+                      type='text'
                       onChange={(e) => setTitle(e.target.value)}
                     />
                   </FormGroup>
                 </div>
                 <Button
-                  className="btn-simple mt-3"
-                  color="info"
+                  className='btn-simple mt-3'
+                  color='info'
                   onClick={(e) => {
-                    e.preventDefault();
-                    handleTransform();
+                    e.preventDefault()
+                    handleTransform()
                   }}
                 >
                   Transform Image
@@ -347,23 +379,34 @@ export default function GetStartedPage() {
             </Row>
           </Container>
         </div>
-        <section className="section">
+        <section className='section'>
           <Container>
             <Row>
-              <Col md="6">
-                <Card className="card-plain">
+              <Col md='6'>
+                <Card className='card-plain'>
                   <CardHeader>
-                    <h1 className="profile-title text-left">Results</h1>
-                    <h5 className="text-on-back">03</h5>
+                    <h1 className='profile-title text-left'>Results</h1>
+                    <h5 className='text-on-back'>03</h5>
                   </CardHeader>
                   <CardBody>
-                    <div className="w-full my-6 rounded-xl">
-                      {transformedImg.length > 0 &&
-                      transformedImg.length === selectedFiles.length ? (
+                    <div className='w-full my-6 rounded-xl'>
+                      {transformedImg.length > 1 &&
+                      transformedImg.length === selectedFiles.length &&
+                      !!transformedImg[0] ? (
                         <UncontrolledCarousel
                           key={`carousel_${transformedImg.length}`}
-                          items={transformedImg}
+                          src={transformedImg}
                           autoPlay={false}
+                        />
+                      ) : transformedImg.length === 1 ? (
+                        <img
+                          className='w-full my-6 rounded-xl'
+                          src={
+                            transformedImg[0].src
+                              ? transformedImg[0].src
+                              : transformedImg[0]
+                          }
+                          alt='input'
                         />
                       ) : null}
                     </div>
@@ -375,5 +418,5 @@ export default function GetStartedPage() {
         </section>
       </div>
     </>
-  );
+  )
 }

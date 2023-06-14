@@ -1,72 +1,41 @@
-/*!
-
-=========================================================
-* BLK Design System React - v1.2.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/blk-design-system-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/blk-design-system-react/blob/main/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
 import React from 'react'
 import { Link } from 'react-router-dom'
 // reactstrap components
 import {
   Button,
-  Collapse,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown,
   NavbarBrand,
   Navbar,
   NavItem,
-  NavLink,
   Nav,
   Container,
-  Row,
-  Col,
-  UncontrolledTooltip,
 } from 'reactstrap'
 
 export default function IndexNavbar() {
   const [color, setColor] = React.useState('navbar-transparent')
-  const [user, setUser] = React.useState(null);
+  const [user, setUser] = React.useState(null)
   React.useEffect(() => {
-    window.addEventListener('scroll', changeColor);
-    const userLocal = window.localStorage.getItem('user');
+    window.addEventListener('scroll', changeColor)
+    const userLocal = window.localStorage.getItem('user')
     if (userLocal) {
-      setUser(JSON.parse(userLocal));
+      setUser(JSON.parse(userLocal))
     }
     return function cleanup() {
-      window.removeEventListener('scroll', changeColor);
-    };
-  }, []);
+      window.removeEventListener('scroll', changeColor)
+    }
+  }, [])
   const changeColor = () => {
     if (
       document.documentElement.scrollTop > 99 ||
       document.body.scrollTop > 99
     ) {
-      setColor('bg-info');
+      setColor('bg-info')
     } else if (
       document.documentElement.scrollTop < 100 ||
       document.body.scrollTop < 100
     ) {
-      setColor('navbar-transparent');
+      setColor('navbar-transparent')
     }
-  };
-  const scrollToDownload = () => {
-    document
-      .getElementById('download-section')
-      .scrollIntoView({ behavior: 'smooth' });
-  };
+  }
   return (
     <Navbar className={'fixed-top ' + color} color-on-scroll='100' expand='lg'>
       <Container>
@@ -115,5 +84,5 @@ export default function IndexNavbar() {
         </Nav>
       </Container>
     </Navbar>
-  );
+  )
 }
