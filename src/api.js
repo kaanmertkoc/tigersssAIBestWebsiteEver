@@ -1,4 +1,10 @@
-import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  query,
+  where,
+} from 'firebase/firestore';
 import { firestore } from './firebase';
 
 const api = () => {
@@ -86,11 +92,32 @@ const api = () => {
     });
   };
 
+  const getPrompts = async (userId) => {
+    const colRef = collection(firestore, 'prompts');
+    const q = query(colRef, where('userId', '==', userId));
+
+    try {
+      const snapshot = await onSnapshot(q);
+      let books = [];
+
+      snapshot.docs.forEach((doc) => {
+        books.push({ ...doc.data(), id: doc.id });
+      });
+
+      console.log(books);
+      return books;
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      throw error;
+    }
+  };
+
   return {
     uploadImage,
     translate,
     getData,
     uploadPrompt,
+    getPrompts,
   };
 };
 

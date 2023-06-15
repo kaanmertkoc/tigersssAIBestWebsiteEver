@@ -167,7 +167,9 @@ export default function GetStartedPage() {
                 },
                 ...transformedUrls,
               ]);
-              uploadPrompt(prompt, neg_prompt, image, downloadURL, user?.uid);
+              if (user?.uid) {
+                uploadPrompt(prompt, neg_prompt, image, downloadURL, user?.uid);
+              }
             });
           });
           setTransformedImg([
@@ -214,7 +216,9 @@ export default function GetStartedPage() {
                 },
                 ...transformedUrls,
               ]);
-              uploadPrompt(prompt, neg_prompt, image, downloadURL, user?.uid);
+              if (user?.uid) {
+                uploadPrompt(prompt, neg_prompt, image, downloadURL, user?.uid);
+              }
             });
           });
           setTransformedImg([
