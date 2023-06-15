@@ -1,76 +1,35 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React, { useState } from 'react';
-import classnames from 'classnames';
 // javascript plugin used to create scrollbars on windows
 import PerfectScrollbar from 'perfect-scrollbar';
 // reactstrap components
-import julie from '../../assets/img/julie.jpeg';
-import james from '../../assets/img/james.jpg';
-import {
-  addDoc,
-  collection,
-  onSnapshot,
-  query,
-  where,
-} from 'firebase/firestore';
-import { firestore } from '../../firebase';
 
 import {
   Button,
-  Card,
-  CardHeader,
-  CardBody,
-  Label,
-  FormGroup,
-  Form,
-  Input,
-  FormText,
-  NavItem,
-  NavLink,
-  Nav,
-  Table,
-  TabContent,
-  TabPane,
-  Container,
-  Row,
   Col,
-  UncontrolledTooltip,
-  UncontrolledCarousel,
+  Container,
   Modal,
-  ModalHeader,
   ModalBody,
   ModalFooter,
+  Row,
+  Table,
 } from 'reactstrap';
 
 // core components
 import Footer from 'components/Footer/Footer.js';
 import IndexNavbar from 'components/Navbars/IndexNavbar';
 import api from '../../api';
-
-const carouselItems = [
-  {
-    src: require('assets/img/denys.jpg'),
-    altText: 'Slide 1',
-    caption: 'Big City Life, United States',
-  },
-  {
-    src: require('assets/img/fabien-bazanegue.jpg'),
-    altText: 'Slide 2',
-    caption: 'Somewhere Beyond, United States',
-  },
-  {
-    src: require('assets/img/mark-finn.jpg'),
-    altText: 'Slide 3',
-    caption: 'Stocks, United States',
-  },
-];
+import { useHistory } from 'react-router-dom';
+import { auth } from '../../firebase';
+import { signOut } from 'firebase/auth';
 
 let ps = null;
 
 export default function ProfilePage() {
   const [tabs, setTabs] = React.useState(1);
   const [images, setImages] = React.useState([]);
-  const { getPrompts } = api();
+  const { getPrompts, deletePrompt } = api();
+  let history = useHistory();
 
   const [modal, setModal] = React.useState({ bool: false, image: null });
 
@@ -104,7 +63,7 @@ export default function ProfilePage() {
 
   const fetchPrompts = async () => {
     const res = await getPrompts(user?.uid);
-    console.log('res', res);
+    setImages(res);
   };
 
   React.useEffect(() => {
@@ -112,19 +71,6 @@ export default function ProfilePage() {
       fetchPrompts();
     }
   }, [user]);
-
-  const ImageCard = ({ image }) => {
-    return (
-      <div className='card'>
-        <img src={image} height={'100%'} width={'100%'}></img>
-
-        <Button className='btn-neutral' color='primary'>
-          Download
-        </Button>
-        <Button color='danger'>Delete</Button>
-      </div>
-    );
-  };
 
   return (
     <>
@@ -157,7 +103,7 @@ export default function ProfilePage() {
         <ModalFooter>
           <Button
             color='primary'
-            onClick={() => {
+            onClick={async () => {
               setModal({ image: null, bool: false });
             }}
           >
@@ -195,6 +141,19 @@ export default function ProfilePage() {
                   TextualVision from here! Scroll down to see the masterpieces
                   you have created!
                 </p>
+                <Button
+                  className='btn-icon'
+                  color='danger'
+                  style={{ width: '100px' }}
+                  onClick={() => {
+                    signOut(auth).then(() => {
+                      window.localStorage.removeItem('user');
+                      history.push('/get-started');
+                    });
+                  }}
+                >
+                  Sign Out{' '}
+                </Button>
               </Col>
               <Col className='ml-auto mr-auto' lg='4' md='6'></Col>
             </Row>
@@ -207,9 +166,10 @@ export default function ProfilePage() {
               <thead>
                 <tr>
                   <th className='text-center'>#</th>
-                  <th>Image</th>
+                  <th>Input image</th>
                   <th>Prompt</th>
                   <th>Negative Prompt</th>
+                  <th>Output image</th>
                   <th className='text-right'>Actions</th>
                 </tr>
               </thead>
@@ -221,19 +181,35 @@ export default function ProfilePage() {
                       <img
                         src={data.imageUrl}
                         height={250}
-                        width={250}
                         onClick={() => {
                           setModal({ image: data.imageUrl, bool: true });
                         }}
                       ></img>
                     </td>
-                    <td>{data.propmt}</td>
+                    <td>{data.prompt}</td>
                     <td>{data.negativePrompt}</td>
+                    <td>
+                      <img
+                        src={data.outputUrl}
+                        height={250}
+                        onClick={() => {
+                          setModal({ image: data.outputUrl, bool: true });
+                        }}
+                      ></img>
+                    </td>
                     <td className='text-right'>
                       <Button className='btn-icon' color='info' size='sm'>
                         <i className='tim-icons icon-upload'></i>
                       </Button>
-                      <Button className='btn-icon' color='danger' size='sm'>
+                      <Button
+                        onClick={async () => {
+                          await deletePrompt(data.id);
+                          fetchPrompts();
+                        }}
+                        className='btn-icon'
+                        color='danger'
+                        size='sm'
+                      >
                         <i className='tim-icons icon-trash-simple'></i>
                       </Button>
                     </td>

@@ -1,6 +1,9 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
+  getDocs,
   onSnapshot,
   query,
   where,
@@ -73,7 +76,9 @@ const api = () => {
         });
     });
   };
-
+  const deletePrompt = async (id) => {
+    await deleteDoc(doc(firestore, 'prompts', id));
+  };
   const uploadPrompt = async (
     prompt,
     negativePrompt,
@@ -97,10 +102,10 @@ const api = () => {
     const q = query(colRef, where('userId', '==', userId));
 
     try {
-      const snapshot = await onSnapshot(q);
+      const querySnapshot = await getDocs(q);
       let books = [];
 
-      snapshot.docs.forEach((doc) => {
+      querySnapshot.docs.forEach((doc) => {
         books.push({ ...doc.data(), id: doc.id });
       });
 
@@ -118,6 +123,7 @@ const api = () => {
     getData,
     uploadPrompt,
     getPrompts,
+    deletePrompt,
   };
 };
 
