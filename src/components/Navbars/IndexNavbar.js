@@ -13,6 +13,7 @@ import {
 export default function IndexNavbar() {
   const [color, setColor] = React.useState('navbar-transparent')
   const [user, setUser] = React.useState(null)
+  console.log(user?.photoURL);
   React.useEffect(() => {
     window.addEventListener('scroll', changeColor)
     const userLocal = window.localStorage.getItem('user')
@@ -66,6 +67,7 @@ export default function IndexNavbar() {
                   alt='user profile'
                   width='24px'
                   height='24px'
+                  referrerPolicy='no-referrer'
                   src={user?.photoURL}
                 />
               </Button>
@@ -84,5 +86,5 @@ export default function IndexNavbar() {
         </Nav>
       </Container>
     </Navbar>
-  )
+  );
 }
