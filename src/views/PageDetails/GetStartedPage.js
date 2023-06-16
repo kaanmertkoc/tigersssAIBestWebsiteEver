@@ -1,7 +1,7 @@
 /* eslint-disable no-loop-func */
-import React, { useEffect } from 'react';
+import React, { useEffect } from 'react'
 // javascript plugin used to create scrollbars on windows
-import PerfectScrollbar from 'perfect-scrollbar';
+import PerfectScrollbar from 'perfect-scrollbar'
 // reactstrap components
 import {
   Button,
@@ -15,61 +15,61 @@ import {
   Row,
   Col,
   CustomInput,
-} from 'reactstrap';
-import Nouislider from 'nouislider-react';
+} from 'reactstrap'
+import Nouislider from 'nouislider-react'
 // core components
-import IndexNavbar from 'components/Navbars/IndexNavbar';
-import { UncontrolledCarousel } from 'reactstrap';
-import api from 'api';
-import { storage, realStorage } from '../../firebase';
+import IndexNavbar from 'components/Navbars/IndexNavbar'
+import { UncontrolledCarousel } from 'reactstrap'
+import api from 'api'
+import { storage, realStorage } from '../../firebase'
 import {
   getDownloadURL,
   ref,
   uploadBytes,
   uploadBytesResumable,
-} from 'firebase/storage';
+} from 'firebase/storage'
 
-let ps = null;
+let ps = null
 
 export default function GetStartedPage() {
-  const [imgUrl, setImgUrl] = React.useState('');
-  const [type, setType] = React.useState('');
-  const [prompt, setPrompt] = React.useState('');
-  const [neg_prompt, setNeg_Prompt] = React.useState('');
-  const [title, setTitle] = React.useState('');
-  const [image, setImage] = React.useState([]);
-  const [transformedImg, setTransformedImg] = React.useState([]);
-  const [isChecked, setIsChecked] = React.useState(false);
-  const [sliderVal, setSliderVal] = React.useState(40);
-  const [selectedFiles, setSelectedFiles] = React.useState([]);
-  const [transformedUrls, setTransformedUrls] = React.useState([]);
-  const [user, setUser] = React.useState(null);
-  const { translate, getData, uploadPrompt } = api();
+  const [imgUrl, setImgUrl] = React.useState('')
+  const [type, setType] = React.useState('')
+  const [prompt, setPrompt] = React.useState('')
+  const [neg_prompt, setNeg_Prompt] = React.useState('')
+  const [title, setTitle] = React.useState('')
+  const [image, setImage] = React.useState([])
+  const [transformedImg, setTransformedImg] = React.useState([])
+  const [isChecked, setIsChecked] = React.useState(false)
+  const [sliderVal, setSliderVal] = React.useState(40)
+  const [selectedFiles, setSelectedFiles] = React.useState([])
+  const [transformedUrls, setTransformedUrls] = React.useState([])
+  const [user, setUser] = React.useState(null)
+  const { translate, getData, uploadPrompt } = api()
   React.useEffect(() => {
     if (navigator.platform.indexOf('Win') > -1) {
-      document.documentElement.className += ' perfect-scrollbar-on';
-      document.documentElement.classList.remove('perfect-scrollbar-off');
-      let tables = document.querySelectorAll('.table-responsive');
+      document.documentElement.className += ' perfect-scrollbar-on'
+      document.documentElement.classList.remove('perfect-scrollbar-off')
+      let tables = document.querySelectorAll('.table-responsive')
       for (let i = 0; i < tables.length; i++) {
-        ps = new PerfectScrollbar(tables[i]);
+        ps = new PerfectScrollbar(tables[i])
       }
     }
-    document.body.classList.toggle('profile-page');
+    document.body.classList.toggle('profile-page')
     // Specify how to clean up after this effect:
     return function cleanup() {
       if (navigator.platform.indexOf('Win') > -1) {
-        ps.destroy();
-        document.documentElement.className += ' perfect-scrollbar-off';
-        document.documentElement.classList.remove('perfect-scrollbar-on');
+        ps.destroy()
+        document.documentElement.className += ' perfect-scrollbar-off'
+        document.documentElement.classList.remove('perfect-scrollbar-on')
       }
-      document.body.classList.toggle('profile-page');
-    };
-  }, []);
+      document.body.classList.toggle('profile-page')
+    }
+  }, [])
 
   React.useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    setUser(user);
-  }, []);
+    const user = JSON.parse(localStorage.getItem('user'))
+    setUser(user)
+  }, [])
 
   const Slider = () => (
     <Nouislider
@@ -77,25 +77,25 @@ export default function GetStartedPage() {
       start={[sliderVal]}
       onChange={(e) => setSliderVal(e)}
     />
-  );
+  )
 
   const uploadImage = async (imgAddress, arr) => {
-    const storageRef = ref(storage, `files/${imgAddress?.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, imgAddress);
+    const storageRef = ref(storage, `files/${imgAddress?.name}`)
+    const uploadTask = uploadBytesResumable(storageRef, imgAddress)
     const a = uploadTask.on(
       'state_changed',
       (snapshot) => {
         const progress = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        );
-        console.log(progress);
+        )
+        console.log(progress)
       },
       (error) => {
-        alert(error);
+        alert(error)
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          console.log('download', downloadURL);
+          console.log('download', downloadURL)
           setImage([
             {
               src: downloadURL,
@@ -103,47 +103,48 @@ export default function GetStartedPage() {
               caption: 'caption',
             },
             ...arr,
-          ]);
+          ])
           arr.push({
             src: downloadURL,
             altText: 'alt',
             caption: 'caption',
-          });
-        });
+          })
+        })
       }
-    );
-  };
+    )
+  }
 
   const onChange = (e) => {
-    setType('img');
-    const filesArray = []; // Initialize an array to store the file data
+    setType('img')
+    const filesArray = [] // Initialize an array to store the file data
     for (const file of e.target.files) {
-      filesArray.push(file); // Add the file data to the array
+      filesArray.push(file) // Add the file data to the array
     }
-    setSelectedFiles(filesArray);
-  };
+    setSelectedFiles(filesArray)
+  }
 
   const handleSetImage = async () => {
     if (type === 'img') {
-      let arr = [];
+      let arr = []
       selectedFiles.forEach(async (element, index) => {
-        await uploadImage(element, arr).then((res) => {});
-      });
+        await uploadImage(element, arr).then((res) => {})
+      })
       //setImage(arr);
     } else if (type === 'url') {
-      setImage([imgUrl]);
+      setImage([imgUrl])
     }
-  };
+  }
 
   const handleTransform = async () => {
-    let finalTransformedArr = [];
-    let processIndex = 0;
-    console.log('checked', isChecked);
+    let finalTransformedArr = []
+    let processIndex = 0
+    let transURLs = []
+    console.log('checked', isChecked)
     if (isChecked) {
-      let res = await translate(prompt);
-      let neg_res = await translate(neg_prompt);
+      let res = await translate(prompt)
+      let neg_res = await translate(neg_prompt)
       for (const prop of image) {
-        console.log('image', prop);
+        console.log('image', prop)
         await getData(
           prop.src ? prop.src : prop,
           res.translation.translatedText,
@@ -151,27 +152,32 @@ export default function GetStartedPage() {
           neg_res.translation.translatedText,
           Math.round(sliderVal)
         ).then((resObj) => {
-          const res = resObj.base64data;
-          const blob = resObj.blob;
+          const res = resObj.base64data
+          const blob = resObj.blob
 
-          const storageRef = ref(storage, `files/${Date.now()}`);
+          const storageRef = ref(storage, `files/${Date.now()}`)
           uploadBytes(storageRef, blob).then((snapshot) => {
-            console.log('Uploaded a blob or file!', snapshot);
+            console.log('Uploaded a blob or file!', snapshot)
             getDownloadURL(snapshot.ref).then((downloadURL) => {
-              console.log('download', downloadURL);
+              console.log('download', downloadURL)
               setTransformedUrls([
                 {
                   src: downloadURL,
                   altText: 'alt',
                   caption: 'caption',
                 },
-                ...transformedUrls,
-              ]);
+                ...transURLs,
+              ])
+              transURLs.push({
+                src: downloadURL,
+                altText: 'alt',
+                caption: 'caption',
+              })
               if (user?.uid) {
-                uploadPrompt(prompt, neg_prompt, image, downloadURL, user?.uid);
+                uploadPrompt(prompt, neg_prompt, prop, downloadURL, user?.uid)
               }
-            });
-          });
+            })
+          })
           setTransformedImg([
             {
               src: res,
@@ -179,14 +185,14 @@ export default function GetStartedPage() {
               caption: `O_caption_${processIndex}`,
             },
             ...finalTransformedArr,
-          ]);
+          ])
           finalTransformedArr.push({
             src: res,
             altText: `output_${processIndex}`,
             caption: `O_caption_${processIndex}`,
-          });
-          processIndex += 1;
-        });
+          })
+          processIndex += 1
+        })
       }
     } else {
       for (const prop of image) {
@@ -197,30 +203,35 @@ export default function GetStartedPage() {
           neg_prompt,
           Math.round(sliderVal)
         ).then((resObj) => {
-          const res = resObj.base64data;
-          const blob = resObj.blob;
-          console.log('res', res, blob);
-          console.log('finalTransformed', transformedImg);
-          console.log('finalTransformed2', finalTransformedArr);
+          const res = resObj.base64data
+          const blob = resObj.blob
+          console.log('res', res, blob)
+          console.log('finalTransformed', transformedImg)
+          console.log('finalTransformed2', finalTransformedArr)
           //we can do firebase database push here 2
-          const storageRef = ref(storage, `files/${Date.now()}`);
+          const storageRef = ref(storage, `files/${Date.now()}`)
           uploadBytes(storageRef, blob).then((snapshot) => {
-            console.log('Uploaded a blob or file!', snapshot);
+            console.log('Uploaded a blob or file!', snapshot)
             getDownloadURL(snapshot.ref).then((downloadURL) => {
-              console.log('download', downloadURL);
+              console.log('download', downloadURL)
               setTransformedUrls([
                 {
                   src: downloadURL,
                   altText: 'alt',
                   caption: 'caption',
                 },
-                ...transformedUrls,
-              ]);
+                ...transURLs,
+              ])
+              transURLs.push({
+                src: downloadURL,
+                altText: 'alt',
+                caption: 'caption',
+              })
               if (user?.uid) {
-                uploadPrompt(prompt, neg_prompt, image, downloadURL, user?.uid);
+                uploadPrompt(prompt, neg_prompt, prop, downloadURL, user?.uid)
               }
-            });
-          });
+            })
+          })
           setTransformedImg([
             {
               src: res,
@@ -228,19 +239,19 @@ export default function GetStartedPage() {
               caption: `O_caption_${processIndex}`,
             },
             ...finalTransformedArr,
-          ]);
+          ])
           finalTransformedArr.push({
             src: res,
             altText: `output_${processIndex}`,
             caption: `O_caption_${processIndex}`,
-          });
-          processIndex += 1;
-        });
+          })
+          processIndex += 1
+        })
       }
     }
-  };
+  }
 
-  console.log('Image', image);
+  console.log('Image', image)
   return (
     <>
       <IndexNavbar />
@@ -281,16 +292,16 @@ export default function GetStartedPage() {
                     name='url'
                     placeholder='https://...'
                     onChange={(e) => {
-                      setImgUrl(e.target.value);
-                      setType('url');
+                      setImgUrl(e.target.value)
+                      setType('url')
                     }}
                   />
                   <Button
                     className='btn-simple mt-3'
                     color='info'
                     onClick={(e) => {
-                      e.preventDefault();
-                      handleSetImage();
+                      e.preventDefault()
+                      handleSetImage()
                     }}
                   >
                     Set Image
@@ -418,8 +429,8 @@ export default function GetStartedPage() {
                   className='btn-simple mt-3'
                   color='info'
                   onClick={(e) => {
-                    e.preventDefault();
-                    handleTransform();
+                    e.preventDefault()
+                    handleTransform()
                   }}
                 >
                   Transform Image
@@ -457,5 +468,5 @@ export default function GetStartedPage() {
         </section>
       </div>
     </>
-  );
+  )
 }
